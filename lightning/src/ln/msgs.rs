@@ -648,10 +648,52 @@ pub struct GossipTimestampFilter {
 	pub timestamp_range: u32,
 }
 
+
 /// Encoding type for data compression of collections in gossip queries.
 /// We do not support encoding_type=1 zlib serialization defined in BOLT #7.
 enum EncodingType {
 	Uncompressed = 0x00,
+}
+
+/// Represents an encodable type
+pub struct Encoded<T: Readable> {
+	/// Encoding type used for reading or write
+	pub encoding_type: EncodingType,
+
+	/// Values that were encoded or decoded
+	pub values: Vec<T>,
+}
+
+impl<T> Readable for Encoded<T>
+where
+	T: Readable
+{
+	fn read<R: Read>(r: &mut R) -> Result<Self, DecodeError> {
+		let encoding_len: u16 = Readable::read(r)?;
+		let encoding_type: u8 = Readable::read(r)?;
+
+		let mut raw = vec![0; (encoding_len-1) as usize];
+		r.read_exact(&mut raw)?;
+
+		let decoded_buffer = match encoding_type {
+			0 => raw,
+			_ => return Err(DecodeError::InvalidValue),
+		};
+
+
+		let mut decoded_cursor = std::io::Cursor::new(&decoded_buffer[..]);
+		let mut results = vec![];
+		loop {
+			if decoded_cursor.position() >= (encoding_len - 1) as u64 { break; }
+			let result: T = Readable::read(&mut decoded_cursor)?;
+			results.push(result);
+		}
+
+		Ok(Encoded {
+			encoding_type: EncodingType::Uncompressed,
+			values: results,
+		})
+	}
 }
 
 /// Used to put an error message in a LightningError
