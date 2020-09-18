@@ -1543,10 +1543,10 @@ impl Readable for UnsignedNodeAnnouncement {
 			if addr_len <= addr_readpos { break; }
 			match Readable::read(r) {
 				Ok(Ok(addr)) => {
-					if addr.get_id() < highest_addr_type {
-						// Addresses must be sorted in increasing order
-						return Err(DecodeError::InvalidValue);
-					}
+					// if addr.get_id() < highest_addr_type {
+					// 	// Addresses must be sorted in increasing order
+					// 	return Err(DecodeError::InvalidValue);
+					// }
 					highest_addr_type = addr.get_id();
 					if addr_len < addr_readpos + 1 + addr.len() {
 						return Err(DecodeError::BadLengthDescriptor);
