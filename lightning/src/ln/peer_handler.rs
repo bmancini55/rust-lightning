@@ -707,10 +707,10 @@ impl<Descriptor: SocketDescriptor, CM: Deref, RM: Deref, L: Deref> PeerManager<D
 					peer.sync_status = InitSyncTracker::ChannelsSyncing(0);
 					peers_needing_send.insert(peer_descriptor.clone());
 				}
-				if !msg.features.supports_static_remote_key() {
-					log_debug!(self.logger, "Peer {} does not support static remote key, disconnecting with no_connection_possible", log_pubkey!(peer.their_node_id.unwrap()));
-					return Err(PeerHandleError{ no_connection_possible: true }.into());
-				}
+				// if !msg.features.supports_static_remote_key() {
+				// 	log_debug!(self.logger, "Peer {} does not support static remote key, disconnecting with no_connection_possible", log_pubkey!(peer.their_node_id.unwrap()));
+				// 	return Err(PeerHandleError{ no_connection_possible: true }.into());
+				// }
 
 				if !peer.outbound {
 					let mut features = InitFeatures::known();
