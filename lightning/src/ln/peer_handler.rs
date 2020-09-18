@@ -16,6 +16,9 @@
 //! they should handle, and encoding/sending response messages.
 
 use bitcoin::secp256k1::key::{SecretKey,PublicKey};
+use bitcoin::blockdata::constants::genesis_block;
+use bitcoin::network::constants::Network;
+
 
 use ln::features::InitFeatures;
 use ln::msgs;
@@ -724,6 +727,15 @@ impl<Descriptor: SocketDescriptor, CM: Deref, RM: Deref, L: Deref> PeerManager<D
 
 				self.message_handler.chan_handler.peer_connected(&peer.their_node_id.unwrap(), &msg);
 				peer.their_features = Some(msg.features);
+
+
+				// TODO - clean this up to  be based on features
+				let query = msgs::QueryChannelRange{
+					chain_hash: genesis_block(Network::Testnet).header.block_hash(),
+					first_blocknum: 0,
+					number_of_blocks: 0xffff_ffff,
+				};
+				self.enqueue_message(peers_needing_send, peer, peer_descriptor.clone(), &query);
 			},
 			wire::Message::Error(msg) => {
 				let mut data_is_printable = true;
@@ -840,6 +852,37 @@ impl<Descriptor: SocketDescriptor, CM: Deref, RM: Deref, L: Deref> PeerManager<D
 				if should_forward {
 					// TODO: forward msg along to all our other peers!
 				}
+			},
+
+			wire::Message::QueryShortChannelIds(_msg) => {
+				// TODO bmancini - implement reply to query
+				log_info!(self.logger, "Receved query_short_channel_ids");
+			},
+
+			wire::Message::ReplyShortChannelIdsEnd(msg) => {
+				// TODO bmancini - implement reply to query
+				log_info!(self.logger, "Receved reply_short_channel_ids_end chain_hash: {}, full_information: {}", msg.chain_hash, msg.full_information);
+			},
+
+			wire::Message::QueryChannelRange(_msg) => {
+				// TODO bmancini - implement reply to query
+			},
+
+			wire::Message::ReplyChannelRange(msg) => {
+				// TODO bmancini - implement reply to query
+				log_info!(self.logger, "Received gossip query reply_channel_range with {} scids!", msg.short_channel_ids.len());
+
+				// send a query
+				let query = msgs::QueryShortChannelIds{
+					chain_hash: genesis_block(Network::Testnet).header.block_hash(),
+					short_channel_ids: msg.short_channel_ids.clone(),
+				};
+				self.enqueue_message(peers_needing_send, peer, peer_descriptor.clone(), &query);
+			},
+
+			wire::Message::GossipTimestampFilter(_msg) => {
+				// TODO bmancini - implement filter relay
+				log_info!(self.logger, "Receved gossip_timestamp_filter");
 			},
 
 			// Unknown messages:
