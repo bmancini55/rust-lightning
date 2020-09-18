@@ -98,13 +98,13 @@ mod sealed {
 			// Byte 0
 			,
 			// Byte 1
-			StaticRemoteKey,
+			, //StaticRemoteKey,
 			// Byte 2
 			,
 		],
 		optional_features: [
 			// Byte 0
-			DataLossProtect | InitialRoutingSync | UpfrontShutdownScript,
+			DataLossProtect | InitialRoutingSync | UpfrontShutdownScript | GossipQueries,
 			// Byte 1
 			VariableLengthOnion | PaymentSecret,
 			// Byte 2
@@ -116,13 +116,13 @@ mod sealed {
 			// Byte 0
 			,
 			// Byte 1
-			StaticRemoteKey,
+			, //StaticRemoteKey,
 			// Byte 2
 			,
 		],
 		optional_features: [
 			// Byte 0
-			DataLossProtect | UpfrontShutdownScript,
+			DataLossProtect | UpfrontShutdownScript | GossipQueries,
 			// Byte 1
 			VariableLengthOnion | PaymentSecret,
 			// Byte 2
@@ -243,6 +243,8 @@ mod sealed {
 		"Feature flags for `initial_routing_sync`.");
 	define_feature!(5, UpfrontShutdownScript, [InitContext, NodeContext],
 		"Feature flags for `option_upfront_shutdown_script`.");
+	define_feature!(7, GossipQueries, [InitContext, NodeContext],
+		"Feature flags for `gossip_queries`.");
 	define_feature!(9, VariableLengthOnion, [InitContext, NodeContext],
 		"Feature flags for `var_onion_optin`.");
 	define_feature!(13, StaticRemoteKey, [InitContext, NodeContext],
@@ -471,6 +473,17 @@ impl<T: sealed::UpfrontShutdownScript> Features<T> {
 		<T as sealed::UpfrontShutdownScript>::clear_bits(&mut self.flags);
 		self
 	}
+}
+
+
+impl<T: sealed::GossipQueries> Features<T> {
+	#[cfg(test)]
+	pub(crate) fn requires_gossip_queries(&self) -> bool {
+		<T as sealed::GossipQueries>::requires_feature(&self.flags)
+	}
+	pub(crate) fn supports_gossip_queries(&self) -> bool {
+		<T as sealed::GossipQueries>::supports_feature(&self.flags)
+	}	
 }
 
 impl<T: sealed::VariableLengthOnion> Features<T> {
