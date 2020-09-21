@@ -233,6 +233,8 @@ fn get_dummy_channel_update(short_chan_id: u64) -> msgs::ChannelUpdate {
 	}
 }
 
+
+
 pub struct TestRoutingMessageHandler {
 	pub chan_upds_recvd: AtomicUsize,
 	pub chan_anns_recvd: AtomicUsize,
@@ -285,6 +287,40 @@ impl msgs::RoutingMessageHandler for TestRoutingMessageHandler {
 
 	fn should_request_full_sync(&self, _node_id: &PublicKey) -> bool {
 		self.request_full_sync.load(Ordering::Acquire)
+	}
+}
+
+pub struct TestGossipMessageHandler {
+	// TODO bmancini
+}
+
+impl TestGossipMessageHandler {
+	pub fn new() -> Self {
+		Self{}
+	}
+}
+
+impl msgs::GossipQueriesHandler for TestGossipMessageHandler {
+	fn handle_reply_channel_range(&self, _their_node_id: &PublicKey, _msg: &msgs::ReplyChannelRange) {
+
+	}
+
+	fn handle_reply_short_channel_ids_end(&self, _their_node_ids: &PublicKey, _msg: &msgs::ReplyShortChannelIdsEnd) {
+
+	}
+
+	fn send_query_channel_range(&self, _their_node_id: &PublicKey, _first_blocknum: u32, _block_range: u32) {
+
+	}
+
+	fn send_query_short_channel_ids(&self, _their_node_id: &PublicKey, _first_blocknum: u32, _block_range: u32) {
+
+	}
+}
+
+impl events::MessageSendEventsProvider for TestGossipMessageHandler {
+	fn get_and_clear_pending_msg_events(&self) -> Vec<events::MessageSendEvent> {
+		vec![]
 	}
 }
 
