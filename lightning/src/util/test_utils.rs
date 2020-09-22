@@ -301,19 +301,15 @@ impl TestGossipMessageHandler {
 }
 
 impl msgs::GossipQueriesHandler for TestGossipMessageHandler {
+	fn query_range(&self, their_node_id: &PublicKey, chain_hash: BlockHash, first_blocknum: u32, number_of_blocks: u32) {
+
+	}
+
 	fn handle_reply_channel_range(&self, _their_node_id: &PublicKey, _msg: &msgs::ReplyChannelRange) {
 
 	}
 
-	fn handle_reply_short_channel_ids_end(&self, _their_node_ids: &PublicKey, _msg: &msgs::ReplyShortChannelIdsEnd) {
-
-	}
-
-	fn send_query_channel_range(&self, _their_node_id: &PublicKey, _first_blocknum: u32, _block_range: u32) {
-
-	}
-
-	fn send_query_short_channel_ids(&self, _their_node_id: &PublicKey, _first_blocknum: u32, _block_range: u32) {
+	fn handle_reply_short_channel_ids_end(&self, _their_node_id: &PublicKey, _msg: &msgs::ReplyShortChannelIdsEnd) {
 
 	}
 }

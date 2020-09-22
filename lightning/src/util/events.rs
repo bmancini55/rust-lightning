@@ -345,6 +345,20 @@ pub enum MessageSendEvent {
 	PaymentFailureNetworkUpdate {
 		/// The channel/node update which should be sent to NetGraphMsgHandler
 		update: msgs::HTLCFailChannelUpdate,
+	},
+	/// TODO bmancini
+	SendChannelRangeQuery {
+		/// The node_id of the node which should receive this message
+		node_id: PublicKey,
+		/// The message which should be sent.
+		msg: msgs::QueryChannelRange,
+	},
+	/// TODO bmancini
+	SendChannelsQuery {
+		/// The node_id of the node which should receive this message
+		node_id: PublicKey,
+		/// The message which should be sent.
+		msg: msgs::QueryShortChannelIds,
 	}
 }
 

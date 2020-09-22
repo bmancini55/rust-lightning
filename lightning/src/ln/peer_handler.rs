@@ -735,13 +735,14 @@ impl<Descriptor: SocketDescriptor, CM: Deref, RM: Deref, GM: Deref, L: Deref> Pe
 				peer.their_features = Some(msg.features);
 
 
-				// TODO - clean this up to  be based on features
-				let query = msgs::QueryChannelRange{
-					chain_hash: genesis_block(Network::Testnet).header.block_hash(),
-					first_blocknum: 0,
-					number_of_blocks: 0xffff_ffff,
-				};
-				self.enqueue_message(peers_needing_send, peer, peer_descriptor.clone(), &query);
+				// TODO bmancini - clean this up to  be based on features
+				self.message_handler.gossip_queries_handler.query_range(
+					&peer.their_node_id.unwrap(),
+					genesis_block(Network::Testnet).header.block_hash(),
+					0,
+					0xffff_ffff,
+				)
+
 			},
 			wire::Message::Error(msg) => {
 				let mut data_is_printable = true;
@@ -862,12 +863,11 @@ impl<Descriptor: SocketDescriptor, CM: Deref, RM: Deref, GM: Deref, L: Deref> Pe
 
 			wire::Message::QueryShortChannelIds(_msg) => {
 				// TODO bmancini - implement reply to query
-				log_info!(self.logger, "Receved query_short_channel_ids");
 			},
 
 			wire::Message::ReplyShortChannelIdsEnd(msg) => {
 				// TODO bmancini - implement reply to query
-				log_info!(self.logger, "Receved reply_short_channel_ids_end chain_hash: {}, full_information: {}", msg.chain_hash, msg.full_information);
+				self.message_handler.gossip_queries_handler.handle_reply_short_channel_ids_end(&peer.their_node_id.unwrap(), &msg);
 			},
 
 			wire::Message::QueryChannelRange(_msg) => {
@@ -876,19 +876,12 @@ impl<Descriptor: SocketDescriptor, CM: Deref, RM: Deref, GM: Deref, L: Deref> Pe
 
 			wire::Message::ReplyChannelRange(msg) => {
 				// TODO bmancini - implement reply to query
-				log_info!(self.logger, "Received gossip query reply_channel_range with {} scids!", msg.short_channel_ids.len());
-
-				// send a query
-				let query = msgs::QueryShortChannelIds{
-					chain_hash: genesis_block(Network::Testnet).header.block_hash(),
-					short_channel_ids: msg.short_channel_ids.clone(),
-				};
-				self.enqueue_message(peers_needing_send, peer, peer_descriptor.clone(), &query);
+				self.message_handler.gossip_queries_handler.handle_reply_channel_range(&peer.their_node_id.unwrap(), &msg);
 			},
 
 			wire::Message::GossipTimestampFilter(_msg) => {
 				// TODO bmancini - implement filter relay
-				log_info!(self.logger, "Receved gossip_timestamp_filter");
+				log_info!(self.logger, "Received gossip_timestamp_filter");
 			},
 
 			// Unknown messages:
@@ -914,6 +907,7 @@ impl<Descriptor: SocketDescriptor, CM: Deref, RM: Deref, GM: Deref, L: Deref> Pe
 			// drop optional-ish messages when send buffers get full!
 
 			let mut events_generated = self.message_handler.chan_handler.get_and_clear_pending_msg_events();
+			events_generated.append(&mut self.message_handler.gossip_queries_handler.get_and_clear_pending_msg_events());
 			let mut peers_lock = self.peers.lock().unwrap();
 			let peers = &mut *peers_lock;
 			for event in events_generated.drain(..) {
@@ -1165,6 +1159,22 @@ impl<Descriptor: SocketDescriptor, CM: Deref, RM: Deref, GM: Deref, L: Deref> Pe
 								self.do_attempt_write_data(&mut descriptor, peer);
 							},
 						}
+					},
+					MessageSendEvent::SendChannelRangeQuery { ref node_id, ref msg } => {
+						log_trace!(self.logger, "Handling SendChannelRangeQuery event in peer_handler");
+						let (mut descriptor, peer) = get_peer_for_forwarding!(node_id, {
+							//TODO: Do whatever we're gonna do for handling dropped messages
+						});
+						peer.pending_outbound_buffer.push_back(peer.channel_encryptor.encrypt_message(&encode_msg!(msg)));
+						self.do_attempt_write_data(&mut descriptor, peer);
+					},
+					MessageSendEvent::SendChannelsQuery { ref node_id, ref msg } => {
+						log_trace!(self.logger, "Handling SendChannelsQuery event in peer_handler");
+						let (mut descriptor, peer) = get_peer_for_forwarding!(node_id, {
+							//TODO: Do whatever we're gonna do for handling dropped messages
+						});
+						peer.pending_outbound_buffer.push_back(peer.channel_encryptor.encrypt_message(&encode_msg!(msg)));
+						self.do_attempt_write_data(&mut descriptor, peer);
 					}
 				}
 			}

@@ -3367,6 +3367,8 @@ impl<ChanSigner: ChannelKeys, M: Deref + Sync + Send, T: Deref + Sync + Send, K:
 					&events::MessageSendEvent::BroadcastChannelUpdate { .. } => true,
 					&events::MessageSendEvent::HandleError { ref node_id, .. } => node_id != counterparty_node_id,
 					&events::MessageSendEvent::PaymentFailureNetworkUpdate { .. } => true,
+					&events::MessageSendEvent::SendChannelRangeQuery { .. } => false,
+					&events::MessageSendEvent::SendChannelsQuery { .. } => false,
 				}
 			});
 		}

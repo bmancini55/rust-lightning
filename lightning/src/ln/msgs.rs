@@ -830,13 +830,11 @@ pub trait RoutingMessageHandler : Send + Sync {
 /// TODO bmancini
 pub trait GossipQueriesHandler : events::MessageSendEventsProvider + Send + Sync {
 	/// TODO bmancini
-	fn send_query_channel_range(&self,  their_node_id: &PublicKey, first_blocknum: u32, block_range: u32);
+	fn query_range(&self, their_node_id: &PublicKey, chain_hash: BlockHash, first_blocknum: u32, number_of_blocks: u32);
 	/// TODO bmancini
 	fn handle_reply_channel_range(&self, their_node_id: &PublicKey, msg: &ReplyChannelRange);
 	/// TODO bmancini
-	fn send_query_short_channel_ids(&self, their_node_id: &PublicKey, first_blocknum: u32, block_range: u32);
-	/// TODO bmancini
-	fn handle_reply_short_channel_ids_end(&self, their_node_ids: &PublicKey, msg: &ReplyShortChannelIdsEnd);
+	fn handle_reply_short_channel_ids_end(&self, their_node_id: &PublicKey, msg: &ReplyShortChannelIdsEnd);
 }
 
 mod fuzzy_internal_msgs {

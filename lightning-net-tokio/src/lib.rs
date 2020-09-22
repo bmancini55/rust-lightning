@@ -570,9 +570,8 @@ mod tests {
 	}
 	impl GossipQueriesHandler for MsgHandler {
 		fn handle_reply_channel_range(&self, _their_node_id: &PublicKey, _msg: &ReplyChannelRange) {}
-		fn handle_reply_short_channel_ids_end(&self, _their_node_ids: &PublicKey, _msg: &ReplyShortChannelIdsEnd) {}
-		fn send_query_channel_range(&self, _their_node_id: &PublicKey, _first_blocknum: u32, _block_range: u32) {}
-		fn send_query_short_channel_ids(&self, _their_node_id: &PublicKey, _first_blocknum: u32, _block_range: u32) {}
+		fn handle_reply_short_channel_ids_end(&self, _their_node_id: &PublicKey, _msg: &ReplyShortChannelIdsEnd) {}
+		fn query_range(&self, _their_node_id: &PublicKey, _chain_hash: bitcoin::BlockHash,  _first_blocknum: u32, _block_range: u32) {}
 	}
 	impl MessageSendEventsProvider for MsgHandler {
 		fn get_and_clear_pending_msg_events(&self) -> Vec<MessageSendEvent> {
